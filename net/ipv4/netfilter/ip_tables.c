@@ -742,6 +742,15 @@ check_entry_size_and_hooks(struct ipt_entry *e,
 		return -EINVAL;
 	}
 
+
+	if (!ip_checkentry(&e->ip))
+		return -EINVAL;
+
+	err = xt_check_entry_offsets(e, e->elems, e->target_offset,
+				     e->next_offset);
+	if (err)
+		return err;
+
 	/* Check hooks & underflows */
 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
 		if (!(valid_hooks & (1 << h)))
@@ -1504,7 +1513,7 @@ check_compat_entry_size_and_hooks(struct compat_ipt_entry *e,
 	if (!ip_checkentry(&e->ip))
 		return -EINVAL;
 
-	ret = xt_compat_check_entry_offsets(e,
+	ret = xt_compat_check_entry_offsets(e, e->elems,
 					    e->target_offset, e->next_offset);
 	if (ret)
 		return ret;
