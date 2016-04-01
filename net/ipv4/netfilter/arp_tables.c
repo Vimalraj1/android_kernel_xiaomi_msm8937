@@ -490,15 +490,6 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
 	return 1;
 }
 
-static inline int check_entry(const struct arpt_entry *e, const char *name)
-{
-	if (!arp_checkentry(&e->arp))
-		return -EINVAL;
-	}
-
-	return xt_check_entry_offsets(e, e->target_offset, e->next_offset);
-}
-
 static inline int check_target(struct arpt_entry *e, const char *name)
 {
 	struct xt_entry_target *t = arpt_get_target(e);
@@ -589,6 +580,13 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
 			 e, e->next_offset);
 		return -EINVAL;
 	}
+
+	if (!arp_checkentry(&e->arp))
+		return -EINVAL;
+
+	err = xt_check_entry_offsets(e, e->target_offset, e->next_offset);
+	if (err)
+		return err;
 
 	/* Check hooks & underflows */
 	for (h = 0; h < NF_ARP_NUMHOOKS; h++) {
@@ -1244,8 +1242,10 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
 		return -EINVAL;
 	}
 
-	/* For purposes of check_entry casting the compat entry is fine */
-	ret = check_entry((struct arpt_entry *)e, name);
+	if (!arp_checkentry(&e->arp))
+		return -EINVAL;
+
+	ret = xt_check_entry_offsets(e, e->target_offset, e->next_offset);
 	if (ret)
 		return ret;
 
