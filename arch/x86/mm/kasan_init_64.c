@@ -196,7 +196,7 @@ void __init kasan_init(void)
 			(unsigned long)kasan_mem_to_shadow(_end),
 			NUMA_NO_NODE);
 
-	populate_zero_shadow(kasan_mem_to_shadow((void *)MODULES_END),
+	populate_zero_shadow(kasan_mem_to_shadow((void *)MODULES_VADDR),
 			(void *)KASAN_SHADOW_END);
 
 	memset(kasan_zero_page, 0, PAGE_SIZE);
