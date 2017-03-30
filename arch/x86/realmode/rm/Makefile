@@ -6,7 +6,6 @@
 # for more details.
 #
 #
-KASAN_SANITIZE := n
 
 always := realmode.bin realmode.relocs
 
