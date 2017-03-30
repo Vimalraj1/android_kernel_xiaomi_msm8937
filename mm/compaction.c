@@ -16,7 +16,6 @@
 #include <linux/sysfs.h>
 #include <linux/balloon_compaction.h>
 #include <linux/page-isolation.h>
-#include <linux/kasan.h>
 #include "internal.h"
 
 #ifdef CONFIG_COMPACTION
