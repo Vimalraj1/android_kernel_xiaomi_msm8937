@@ -5,7 +5,6 @@
 
 struct kmem_cache;
 struct page;
-struct vm_struct;
 
 #ifdef CONFIG_KASAN
 
@@ -51,7 +50,7 @@ void kasan_slab_alloc(struct kmem_cache *s, void *object);
 void kasan_slab_free(struct kmem_cache *s, void *object);
 
 int kasan_module_alloc(void *addr, size_t size);
-void kasan_free_shadow(const struct vm_struct *vm);
+void kasan_module_free(void *addr);
 
 #else /* CONFIG_KASAN */
 
@@ -79,7 +78,7 @@ static inline void kasan_slab_alloc(struct kmem_cache *s, void *object) {}
 static inline void kasan_slab_free(struct kmem_cache *s, void *object) {}
 
 static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
-static inline void kasan_free_shadow(const struct vm_struct *vm) {}
+static inline void kasan_module_free(void *addr) {}
 
 #endif /* CONFIG_KASAN */
 
