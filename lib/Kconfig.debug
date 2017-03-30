@@ -657,8 +657,6 @@ config DEBUG_STACKOVERFLOW
 
 source "lib/Kconfig.kmemcheck"
 
-source "lib/Kconfig.kasan"
-
 endmenu # "Memory Debugging"
 
 config DEBUG_SHIRQ
