@@ -1241,6 +1241,20 @@ static loff_t max_file_blocks(void)
 	return result;
 }
 
+static int __f2fs_commit_super(struct buffer_head *bh,
+			struct f2fs_super_block *super)
+{
+	lock_buffer(bh);
+	if (super)
+		memcpy(bh->b_data + F2FS_SUPER_OFFSET, super, sizeof(*super));
+	set_buffer_uptodate(bh);
+	set_buffer_dirty(bh);
+	unlock_buffer(bh);
+
+	/* it's rare case, we can do fua all the time */
+	return __sync_dirty_buffer(bh, REQ_SYNC | REQ_FUA);
+}
+
 static inline bool sanity_check_area_boundary(struct super_block *sb,
 					struct f2fs_super_block *raw_super)
 {
@@ -1314,14 +1328,13 @@ static inline bool sanity_check_area_boundary(struct super_block *sb,
 	return false;
 }
 
-static int sanity_check_raw_super(struct super_block *sb,
-			struct f2fs_super_block *raw_super)
+static int sanity_check_raw_super(struct f2fs_sb_info *sbi,
+			struct buffer_head *bh)
 {
 	struct f2fs_super_block *raw_super = (struct f2fs_super_block *)
 					(bh->b_data + F2FS_SUPER_OFFSET);
 	struct super_block *sb = sbi->sb;
 	unsigned int blocksize;
-
 	if (F2FS_SUPER_MAGIC != le32_to_cpu(raw_super->magic)) {
 		f2fs_msg(sb, KERN_INFO,
 			"Magic Mismatch, valid(0x%x) - read(0x%x)",
