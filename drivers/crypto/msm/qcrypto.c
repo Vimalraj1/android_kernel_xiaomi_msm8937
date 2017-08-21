@@ -4249,7 +4249,7 @@ static int _sha1_hmac_setkey(struct crypto_ahash *tfm, const u8 *key,
 		sha_ctx->alg = QCE_HASH_SHA1;
 		sha_ctx->diglen = SHA1_DIGEST_SIZE;
 		ret = _sha_hmac_setkey(tfm, key, len);
-		if (ret)
+ 		if (ret)
 			pr_err("SHA1 hmac setkey failed\n");
 		sha_ctx->authkey_in_len = SHA1_BLOCK_SIZE;
 	}
