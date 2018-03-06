@@ -289,6 +289,28 @@ static ssize_t spi_prepare_set(struct device *dev,
 static DEVICE_ATTR(spi_prepare, S_IWUSR, NULL, spi_prepare_set);
 
 /**
+ * sysfs node for controlling whether the driver is allowed
+ * to wake up the platform on interrupt.
+ */
+static ssize_t wakeup_enable_set(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct  fpc1020_data *fpc1020 = dev_get_drvdata(dev);
+
+	if (!strncmp(buf, "enable", strlen("enable"))) {
+		fpc1020->wakeup_enabled = true;
+		smp_wmb();
+	} else if (!strncmp(buf, "disable", strlen("disable"))) {
+		fpc1020->wakeup_enabled = false;
+		smp_wmb();
+	} else
+		return -EINVAL;
+
+	return count;
+}
+static DEVICE_ATTR(wakeup_enable, S_IWUSR, NULL, wakeup_enable_set);
+
+/**
  * sysf node to check the interrupt status of the sensor, the interrupt
  * handler should perform sysf_notify to allow userland to poll the node.
  */
@@ -367,8 +389,7 @@ static ssize_t compatible_all_set(struct device *dev,
 		if (rc)
 			goto exit;
 		irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT;
-		if (1) {
-			dev_err(dev, "enable-wakeup request irq %d\n", fpc1020->compatible_enabled);
+		if (of_property_read_bool(dev->of_node, "fpc,enable-wakeup")) {
 			irqf |= IRQF_NO_SUSPEND;
 			device_init_wakeup(dev, 1);
 			rc = devm_request_threaded_irq(dev, gpio_to_irq(fpc1020->irq_gpio),
@@ -403,8 +424,6 @@ static ssize_t compatible_all_set(struct device *dev,
 		}
 		devm_free_irq(dev, gpio_to_irq(fpc1020->irq_gpio), fpc1020);
 		fpc1020->compatible_enabled = 0;
-	} else if (!strncmp(buf, "enable", strlen("enable")) && fpc1020->compatible_enabled == 1) {
-		pr_info("fingerprint hal reboot success\n");
 	} else
 		goto exit;
 	hw_reset(fpc1020);
@@ -417,6 +436,7 @@ static struct attribute *attributes[] = {
 	&dev_attr_pinctl_set.attr,
 	&dev_attr_spi_prepare.attr,
 	&dev_attr_hw_reset.attr,
+	&dev_attr_wakeup_enable.attr,	
 	&dev_attr_compatible_all.attr,
 #ifdef LINUX_CONTROL_SPI_CLK
 	&dev_attr_clk_enable.attr,
@@ -538,7 +558,7 @@ static int fpc1020_probe(struct platform_device *pdev)
 
 
 
-	fpc1020->wakeup_enabled = true;
+	fpc1020->wakeup_enabled = false;
 #ifdef LINUX_CONTROL_SPI_CLK
 	fpc1020->clocks_enabled = false;
 	fpc1020->clocks_suspended = false;
