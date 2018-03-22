@@ -7731,8 +7731,6 @@ SYSCALL_DEFINE5(perf_event_open,
 		 * See perf_event_ctx_lock() for comments on the details
 		 * of swizzling perf_event::ctx.
 		 */
-		mutex_lock_double(&gctx->mutex, &ctx->mutex);
-
 		perf_remove_from_context(group_leader, false);
 
 		/*
@@ -7774,7 +7772,7 @@ SYSCALL_DEFINE5(perf_event_open,
 
 err_locked:
 	if (move_group) {
-		mutex_unlock(&gctx->mutex);
+		perf_event_ctx_unlock(group_leader, gctx);
 		put_ctx(gctx);
 	}
 	mutex_unlock(&ctx->mutex);
@@ -7805,6 +7803,11 @@ err_locked:
 	fd_install(event_fd, event_file);
 	return event_fd;
 
+err_locked:
+	if (move_group)
+		perf_event_ctx_unlock(group_leader, gctx);
+	mutex_unlock(&ctx->mutex);
+	fput(event_file);
 err_context:
 	perf_unpin_context(ctx);
 	put_ctx(ctx);
