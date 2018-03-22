@@ -7803,11 +7803,6 @@ err_locked:
 	fd_install(event_fd, event_file);
 	return event_fd;
 
-err_locked:
-	if (move_group)
-		perf_event_ctx_unlock(group_leader, gctx);
-	mutex_unlock(&ctx->mutex);
-	fput(event_file);
 err_context:
 	perf_unpin_context(ctx);
 	put_ctx(ctx);
