@@ -7772,6 +7772,7 @@ SYSCALL_DEFINE5(perf_event_open,
 	perf_install_in_context(ctx, event, event->cpu);
 	perf_unpin_context(ctx);
 
+err_locked:
 	if (move_group) {
 		mutex_unlock(&gctx->mutex);
 		put_ctx(gctx);
