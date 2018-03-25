@@ -634,8 +634,6 @@ static void wakeup_source_report_event(struct wakeup_source *ws)
 		if (!ws->active)
 			wakeup_source_activate(ws);
 
-		if (hard)
-			pm_system_wakeup();
 	}
 }
 
